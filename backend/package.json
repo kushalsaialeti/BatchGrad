@@ -1,0 +1,24 @@
+{
+  "name": "batchgrad-backend",
+  "version": "1.0.0",
+  "description": "BatchGrad Backend Scraper Engine",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node src/app.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "jsdom": "^28.1.0",
+    "multer": "^2.1.0",
+    "puppeteer": "^22.6.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.22.4"
+  }
+}

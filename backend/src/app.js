@@ -1,0 +1,42 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+require('dotenv').config();
+
+const { analyzeSectionController, checkBatchController, uploadBatchController } = require('./controllers/batchController');
+
+const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.use(cors());
+app.use(express.json());
+
+// Security: Helmet for HTTP header safeguarding
+app.use(helmet());
+
+// Security: Rate limiting (10 requests per 15 mins)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50, // increased max a bit for testing
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Main Endpoint: POST /api/analyze-section
+app.post('/api/analyze-section', analyzeSectionController);
+
+// Database check: GET /api/check-batch
+app.get('/api/check-batch', checkBatchController);
+
+// Database upload: POST /api/upload-batch
+app.post('/api/upload-batch', upload.single('file'), uploadBatchController);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    // Purposely avoiding request data logs for security reasons.
+    console.log(`Server running on port ${PORT}`);
+});
