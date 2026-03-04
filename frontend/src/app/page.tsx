@@ -39,7 +39,7 @@ interface AnalyticsData {
   totalAttempted: number;
   gradeDistribution: Record<string, number>;
   courseGradeDistributions: Record<string, Record<string, number>>;
-  students: any[];
+  students: Record<string, unknown>[];
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
@@ -63,7 +63,7 @@ export default function Home() {
   // Live stream states
   const [processedCount, setProcessedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  const [liveFeedRows, setLiveFeedRows] = useState<any[]>([]);
+  const [liveFeedRows, setLiveFeedRows] = useState<Record<string, string>[]>([]);
 
   const [error, setError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -124,8 +124,12 @@ export default function Home() {
       } else {
         setBatchStatus('needs_upload');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to verify batch consistency.");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Failed to verify batch consistency.");
+      } else {
+        setError("Failed to verify batch consistency.");
+      }
     } finally {
       setChecking(false);
     }
@@ -157,8 +161,12 @@ export default function Home() {
       } else {
         setError("Failed to upload batch data.");
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "File upload error: Are you sure column exists?");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "File upload error: Are you sure column exists?");
+      } else {
+        setError("File upload error: Are you sure column exists?");
+      }
     } finally {
       setUploading(false);
     }
@@ -223,7 +231,7 @@ export default function Home() {
               // Unshift dynamically into live array feed if grade is found
               if (result.success && result.results && result.results.length > 0) {
                 setLiveFeedRows(prev => {
-                  const expanded = result.results.map((r: any) => ({
+                  const expanded = result.results.map((r: { subjectName: string; grade: string }) => ({
                     regNo,
                     subject: r.subjectName,
                     grade: r.grade
@@ -242,11 +250,11 @@ export default function Home() {
               setError(parsed.message);
               setLoading(false);
             }
-          } catch (e) { }
+          } catch { }
         }
       }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred processing the stream.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred processing the stream.");
     } finally {
       setLoading(false);
     }
