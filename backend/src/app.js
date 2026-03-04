@@ -13,6 +13,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors());
 app.use(express.json());
 
+// Security: Trust proxy for Render so rate limiter gets actual IPs
+app.set('trust proxy', 1);
+
 // Security: Helmet for HTTP header safeguarding
 app.use(helmet());
 
@@ -41,7 +44,7 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     // Purposely avoiding request data logs for security reasons.
     console.log(`Server running on port ${PORT}`);
 });
