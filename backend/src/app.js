@@ -35,6 +35,11 @@ app.get('/api/check-batch', checkBatchController);
 // Database upload: POST /api/upload-batch
 app.post('/api/upload-batch', upload.single('file'), uploadBatchController);
 
+// Root Health Check Route
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'online', message: 'BatchGrad Analytics API is live.' });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     // Purposely avoiding request data logs for security reasons.
