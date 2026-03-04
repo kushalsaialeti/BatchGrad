@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "node src/app.js",
-    "build": "./render-build.sh"
+    "build": "./render-build.sh",
+    "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
