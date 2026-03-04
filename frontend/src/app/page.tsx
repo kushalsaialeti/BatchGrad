@@ -43,6 +43,7 @@ interface AnalyticsData {
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -110,7 +111,7 @@ export default function Home() {
 
     setChecking(true);
     try {
-      const response = await axios.get("http://localhost:5000/api/check-batch", {
+      const response = await axios.get(`${API_BASE_URL}/api/check-batch`, {
         params: {
           year: formData.year,
           branch: formData.branch,
@@ -146,7 +147,7 @@ export default function Home() {
       uploadData.append("branch", formData.branch);
       uploadData.append("section", formData.section);
 
-      const response = await axios.post("http://localhost:5000/api/upload-batch", uploadData, {
+      const response = await axios.post(`${API_BASE_URL}/api/upload-batch`, uploadData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
@@ -182,7 +183,7 @@ export default function Home() {
     setSelectedCourseFilter("ALL");
 
     try {
-      const fetchResponse = await fetch("http://localhost:5000/api/analyze-section", {
+      const fetchResponse = await fetch(`${API_BASE_URL}/api/analyze-section`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
