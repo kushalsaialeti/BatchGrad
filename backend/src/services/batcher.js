@@ -1,5 +1,6 @@
 const { scrapeStudentData } = require('./scraper');
 const { supabase } = require('../config/supabase');
+const { buildYearCandidates, isYearTypeError } = require('../utils/year');
 
 function chunkArray(array, size) {
     const chunks = [];
@@ -9,15 +10,36 @@ function chunkArray(array, size) {
     return chunks;
 }
 
-async function processSection(year, branch, section, targetSemester, onProgress) {
+async function processSection(year, branch, section, targetSemester, targetSubjectCode, onProgress) {
     try {
-        const { data: students, error } = await supabase
-            .from('student_registry')
-            .select('reg_no')
-            .match({ year: String(year), branch: branch.toUpperCase(), section: section.toUpperCase() });
+        const yearCandidates = buildYearCandidates(year);
+        let students = [];
+        let lastError = null;
 
-        if (error) {
-            throw new Error(`Database query failed: ${error.message}`);
+        for (const yearValue of yearCandidates) {
+            const { data, error } = await supabase
+                .from('student_registry')
+                .select('reg_no')
+                .match({ year: yearValue, branch: branch.toUpperCase(), section: section.toUpperCase() });
+
+            if (error) {
+                lastError = error;
+                if (!isYearTypeError(error.message)) {
+                    break;
+                }
+                continue;
+            }
+
+            lastError = null;
+            students = data || [];
+
+            if (students.length > 0) {
+                break;
+            }
+        }
+
+        if (lastError) {
+            throw new Error(`Database query failed: ${lastError.message}`);
         }
 
         if (!students || students.length === 0) {
@@ -39,7 +61,7 @@ async function processSection(year, branch, section, targetSemester, onProgress)
                 while (attempts < 3) {
                     attempts++;
                     try {
-                        result = await scrapeStudentData(regNo, targetSemester);
+                        result = await scrapeStudentData(regNo, targetSemester, targetSubjectCode);
                         if (result.success || (result.error && (result.error.includes('No data found') || result.error.includes('No target rows')))) {
                             break;
                         }

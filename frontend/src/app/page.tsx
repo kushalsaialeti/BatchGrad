@@ -14,7 +14,8 @@ import {
   Lock,
   Upload,
   CheckCircle2,
-  TerminalSquare
+  TerminalSquare,
+  Search
 } from "lucide-react";
 import {
   BarChart,
@@ -51,6 +52,7 @@ export default function Home() {
     semester: "",
     branch: "",
     section: "",
+    targetSubjectCode: "",
   });
 
   const [batchStatus, setBatchStatus] = useState<'entering' | 'needs_upload' | 'ready'>('entering');
@@ -68,6 +70,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [excelBase64, setExcelBase64] = useState<string | null>(null);
+
+  const [fetchedSubjects, setFetchedSubjects] = useState<{ code: string; name: string }[] | null>(null);
+  const [fetchingSubjects, setFetchingSubjects] = useState(false);
 
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>("ALL");
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -93,10 +98,41 @@ export default function Home() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (e.target.name !== 'semester') {
+    if (e.target.name !== 'semester' && e.target.name !== 'targetSubjectCode') {
       setBatchStatus('entering');
       setAnalytics(null);
       setLiveFeedRows([]);
+      setFetchedSubjects(null);
+    }
+    if (e.target.name === 'semester') {
+      setFetchedSubjects(null);
+    }
+  };
+
+  const handleFetchSubjects = async () => {
+    if (!formData.year || !formData.semester || !formData.branch || !formData.section) {
+      setError("Please fill out Year, Branch, Section, and Target Semester first.");
+      return;
+    }
+    setFetchingSubjects(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/fetch-subjects`, {
+        params: {
+          year: formData.year,
+          semester: formData.semester,
+          branch: formData.branch,
+          section: formData.section
+        }
+      });
+      if (response.data.success) {
+        setFetchedSubjects(response.data.subjects);
+        setFormData(prev => ({ ...prev, targetSubjectCode: "" })); // default to ALL
+      }
+    } catch (err) {
+      setError("Failed to fetch subjects. Ensure the target semester is valid for this batch.");
+    } finally {
+      setFetchingSubjects(false);
     }
   };
 
@@ -199,6 +235,7 @@ export default function Home() {
           semester: parseInt(formData.semester, 10),
           branch: formData.branch.toUpperCase(),
           section: formData.section.toUpperCase(),
+          targetSubjectCode: formData.targetSubjectCode,
         })
       });
 
@@ -440,6 +477,47 @@ export default function Home() {
                     />
                   </div>
 
+                  <div className="space-y-4 mb-6 pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-400">Target Subjects</label>
+                      <button 
+                        type="button" 
+                        onClick={handleFetchSubjects}
+                        disabled={fetchingSubjects || !formData.semester}
+                        className="text-xs flex items-center gap-1 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-indigo-300 transition-colors disabled:opacity-50"
+                      >
+                        {fetchingSubjects ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
+                        Fetch Subjects
+                      </button>
+                    </div>
+
+                    {!fetchedSubjects ? (
+                      <div className="text-xs text-gray-500 italic px-1 cursor-default">
+                        Click 'Fetch Subjects' to populate valid courses for this semester.
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar border border-white/5 bg-black/20 p-2 rounded-xl">
+                         <button
+                           type="button"
+                           onClick={() => setFormData(prev => ({ ...prev, targetSubjectCode: "" }))}
+                           className={`text-left text-xs px-3 py-2 rounded-lg border transition-all ${formData.targetSubjectCode === "" ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-transparent border-transparent hover:bg-white/5 text-gray-400'}`}
+                         >
+                           <span className="font-bold flex gap-2">ALL SUBJECTS <span className="text-gray-500 font-normal">Extract entire semester</span></span>
+                         </button>
+                         {fetchedSubjects.map(sub => (
+                           <button
+                             type="button"
+                             key={sub.code}
+                             onClick={() => setFormData(prev => ({ ...prev, targetSubjectCode: sub.code }))}
+                             className={`text-left text-xs px-3 py-2 rounded-lg border transition-all ${formData.targetSubjectCode === sub.code ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-transparent border-transparent hover:bg-white/5 text-gray-400'}`}
+                           >
+                             <span className="font-bold">{sub.code}</span> - <span className="opacity-80">{sub.name}</span>
+                           </button>
+                         ))}
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={handleAnalyze}
                     disabled={loading || !formData.semester}
@@ -657,10 +735,11 @@ export default function Home() {
                     onClick={() => {
                       setAnalytics(null);
                       setBatchStatus('entering');
-                      setFormData({ year: '', semester: '', branch: '', section: '' });
+                      setFormData({ year: '', semester: '', branch: '', section: '', targetSubjectCode: '' });
                       setExcelFile(null);
                       setExcelBase64(null);
                       setLiveFeedRows([]);
+                      setFetchedSubjects(null);
                     }}
                     className="text-xs font-medium text-gray-400 hover:text-white px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors shrink-0"
                   >

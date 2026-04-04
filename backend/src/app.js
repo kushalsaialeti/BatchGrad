@@ -5,7 +5,7 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 require('dotenv').config();
 
-const { analyzeSectionController, checkBatchController, uploadBatchController } = require('./controllers/batchController');
+const { analyzeSectionController, checkBatchController, uploadBatchController, fetchSubjectsController } = require('./controllers/batchController');
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -38,13 +38,28 @@ app.get('/api/check-batch', checkBatchController);
 // Database upload: POST /api/upload-batch
 app.post('/api/upload-batch', upload.single('file'), uploadBatchController);
 
+// Fetch subjective list: GET /api/fetch-subjects
+app.get('/api/fetch-subjects', fetchSubjectsController);
+
 // Root Health Check Route
 app.get('/', (req, res) => {
     res.status(200).json({ status: 'online', message: 'BatchGrad Analytics API is live.' });
 });
 
+const { supabase } = require('./config/supabase');
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     // Purposely avoiding request data logs for security reasons.
     console.log(`Server running on port ${PORT}`);
+    
+    // CRON JOB: Ping Supabase every 5 minutes to keep it active
+    setInterval(async () => {
+        try {
+            console.log("Sending keep-alive ping to Supabase...");
+            await supabase.from('student_registry').select('reg_no').limit(1);
+        } catch (error) {
+            console.error("Keep-alive ping failed:", error.message);
+        }
+    }, 5 * 60 * 1000); // 5 minutes
 });
