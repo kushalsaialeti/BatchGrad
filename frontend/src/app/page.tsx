@@ -129,7 +129,7 @@ export default function Home() {
         setFetchedSubjects(response.data.subjects);
         setFormData(prev => ({ ...prev, targetSubjectCode: "" })); // default to ALL
       }
-    } catch (err) {
+    } catch {
       setError("Failed to fetch subjects. Ensure the target semester is valid for this batch.");
     } finally {
       setFetchingSubjects(false);
@@ -493,7 +493,7 @@ export default function Home() {
 
                     {!fetchedSubjects ? (
                       <div className="text-xs text-gray-500 italic px-1 cursor-default">
-                        Click 'Fetch Subjects' to populate valid courses for this semester.
+                        Click &apos;Fetch Subjects&apos; to populate valid courses for this semester.
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar border border-white/5 bg-black/20 p-2 rounded-xl">
