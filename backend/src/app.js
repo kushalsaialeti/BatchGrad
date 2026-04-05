@@ -10,14 +10,22 @@ const { analyzeSectionController, checkBatchController, uploadBatchController, f
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors());
+app.use(cors({
+    origin: ['https://batchgrad-automate.vercel.app', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // // Security: Trust proxy for Render so rate limiter gets actual IPs
 app.set('trust proxy', 1);
 
 // Security: Helmet for HTTP header safeguarding
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false // Disable CSP for now if it interferes with streaming
+}));
 
 // Security: Rate limiting (10 requests per 15 mins)
 const limiter = rateLimit({
