@@ -83,7 +83,9 @@ async function scrapeStudentData(regNo, targetSemester, targetSubjectCode = null
       const rowText = row.textContent.trim().toUpperCase();
 
       if (rowText.includes('SEMESTER-')) {
-        if (rowText.includes(targetHeaderKeyword)) {
+        // Precise matching for Roman numerals to avoid 'I' matching 'III'
+        const tokens = rowText.split(/[\s-]/);
+        if (tokens.includes(targetRoman)) {
           currentSemesterContext = true;
         } else {
           currentSemesterContext = false;

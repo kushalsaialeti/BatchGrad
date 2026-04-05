@@ -45,6 +45,7 @@ interface AnalyticsData {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+// const API_BASE_URL = "http://localhost:5000";
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -464,17 +465,28 @@ export default function Home() {
 
                   <div className="space-y-2 mb-6">
                     <label className="text-sm font-medium text-gray-400">Target Semester</label>
-                    <input
-                      required
-                      name="semester"
-                      type="number"
-                      min="1"
-                      max="10"
-                      placeholder="e.g. 5"
-                      value={formData.semester}
-                      onChange={handleInputChange}
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono"
-                    />
+                    <div className="relative">
+                      <select
+                        required
+                        name="semester"
+                        value={formData.semester}
+                        onChange={handleInputChange}
+                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono appearance-none"
+                      >
+                        <option value="" disabled>Select Target Semester</option>
+                        <option value="1">1-1 SEMESTER-I</option>
+                        <option value="2">1-2 SEMESTER-II</option>
+                        <option value="3">2-1 SEMESTER-III</option>
+                        <option value="4">2-2 SEMESTER-IV</option>
+                        <option value="5">3-1 SEMESTER-V</option>
+                        <option value="6">3-2 SEMESTER-VI</option>
+                        <option value="7">4-1 SEMESTER-VII</option>
+                        <option value="8">4-2 SEMESTER-VIII</option>
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                        <Search className="w-4 h-4" />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-4 mb-6 pt-4 border-t border-white/10">

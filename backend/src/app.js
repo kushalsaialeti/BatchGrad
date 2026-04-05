@@ -13,7 +13,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors());
 app.use(express.json());
 
-// Security: Trust proxy for Render so rate limiter gets actual IPs
+// // Security: Trust proxy for Render so rate limiter gets actual IPs
 app.set('trust proxy', 1);
 
 // Security: Helmet for HTTP header safeguarding
@@ -53,13 +53,13 @@ app.listen(PORT, '0.0.0.0', () => {
     // Purposely avoiding request data logs for security reasons.
     console.log(`Server running on port ${PORT}`);
     
-    // CRON JOB: Ping Supabase every 5 minutes to keep it active
-    setInterval(async () => {
-        try {
-            console.log("Sending keep-alive ping to Supabase...");
-            await supabase.from('student_registry').select('reg_no').limit(1);
-        } catch (error) {
-            console.error("Keep-alive ping failed:", error.message);
-        }
-    }, 5 * 60 * 1000); // 5 minutes
+    // // CRON JOB: Ping Supabase every 5 minutes to keep it active
+setInterval(async () => {
+    try {
+        console.log("Sending keep-alive ping to Supabase...");
+        await supabase.from('student_registry').select('reg_no').limit(1);
+    } catch (error) {
+        console.error("Keep-alive ping failed:", error.message);
+    }
+}, 5 * 60 * 1000); // 5 minutes
 });
