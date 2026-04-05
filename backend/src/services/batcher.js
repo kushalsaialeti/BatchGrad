@@ -47,7 +47,7 @@ async function processSection(year, branch, section, targetSemester, targetSubje
         }
 
         const regNos = students.map(s => s.reg_no);
-        const CHUNK_SIZE = 20; // Increased to 20 for ultra-fast HTTP parsing
+        const CHUNK_SIZE = 8; // Reduced to 8 for memory safety on Render
         const chunks = chunkArray(regNos, CHUNK_SIZE);
 
         let allResults = [];

@@ -28,12 +28,15 @@ async function scrapeStudentData(regNo, targetSemester, targetSubjectCode = null
     maxRedirects: 10
   }));
 
+  let dom = null;
+  let hDom = null;
+
   try {
     console.log(`\n[${regNo}] -> Initiating Fast-Scrape (HTTP API)...`);
 
     // 1. Get Login Page
     const loginRes = await client.get(PORTAL_URL);
-    const dom = new JSDOM(loginRes.data);
+    dom = new JSDOM(loginRes.data);
     const doc = dom.window.document;
 
     const viewState = doc.getElementById("__VIEWSTATE")?.value || "";
@@ -66,7 +69,7 @@ async function scrapeStudentData(regNo, targetSemester, targetSubjectCode = null
 
     // 4. Process Architecture
     const historyHtml = historyRes.data;
-    const hDom = new JSDOM(historyHtml);
+    hDom = new JSDOM(historyHtml);
     const hDoc = hDom.window.document;
 
     const targetRoman = SEMESTERS_ROMAN[parseInt(targetSemester, 10) - 1] || 'I';
@@ -153,6 +156,10 @@ async function scrapeStudentData(regNo, targetSemester, targetSubjectCode = null
   } catch (error) {
     console.error(`[${regNo}] -> CRITICAL FAILURE: ${error.message}`);
     return { regNo, success: false, error: error.message || 'Scraping failed for this student' };
+  } finally {
+    // Explicitly close JSDOM instances to free memory
+    if (dom) dom.window.close();
+    if (hDom) hDom.window.close();
   }
 }
 
