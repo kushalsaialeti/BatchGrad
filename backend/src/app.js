@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
@@ -10,12 +9,35 @@ const { analyzeSectionController, checkBatchController, uploadBatchController, f
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors({
-    origin: ['https://batchgrad-automate.vercel.app', 'http://localhost:3000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+const allowedOrigins = new Set([
+    'https://batchgrad-automate.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+]);
+
+const corsMethods = 'GET,POST,PUT,DELETE,OPTIONS';
+const corsHeaders = 'Content-Type,Authorization';
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const isLocalhostOrigin = origin && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+
+    if (origin && (allowedOrigins.has(origin) || isLocalhostOrigin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Vary', 'Origin');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', corsMethods);
+        res.header('Access-Control-Allow-Headers', corsHeaders);
+    }
+
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+
+    return next();
+});
 app.use(express.json());
 
 // // Security: Trust proxy for Render so rate limiter gets actual IPs
